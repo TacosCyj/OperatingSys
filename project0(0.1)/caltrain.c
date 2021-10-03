@@ -29,6 +29,7 @@ station_load_train(struct station *station, int count)
 	lock_acquire(station -> lock);
 	station -> seat_per_pass = count;
 	while(station -> seat_per_pass > 0 && station -> passenger_to_board > 0){
+		//对应着多个乘客可以并发地被robot运上火车
 		cond_broadcast(station -> passenger, station -> lock);
 		cond_wait(station -> train, station -> lock);
 	}
@@ -42,6 +43,7 @@ station_wait_for_train(struct station *station)
 	lock_acquire(station -> lock);
 	station -> passenger_to_board++;
 	while(station -> seat_per_pass == station -> passenger_to_report){
+		//避免已经上火车的乘客多与火车的座位数后，乘客station_wait_for_train线程仍然被唤醒
 		cond_wait(station -> passenger, station -> lock);
 	}
 	station -> passenger_to_board--;
