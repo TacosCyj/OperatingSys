@@ -5,8 +5,8 @@ struct station {
 	struct condition* passenger;
 	struct condition* train;
 	int seat_per_pass;
-	int passenger_before_station;
-	int passenger_in_station;
+	int passenger_to_board;
+	int passenger_to_report;
 };
 
 void
@@ -19,8 +19,8 @@ station_init(struct station *station)
 	cond_init(station -> passenger);
 	cond_init(station -> train);
 	station -> seat_per_pass = 0;
-	station -> passenger_before_station = 0;
-	station -> passenger_in_station = 0;
+	station -> passenger_to_board = 0;
+	station -> passenger_to_report = 0;
 }
 
 void
@@ -28,7 +28,7 @@ station_load_train(struct station *station, int count)
 {
 	lock_acquire(station -> lock);
 	station -> seat_per_pass = count;
-	while(station -> seat_per_pass > 0 && station -> passenger_before_station > 0){
+	while(station -> seat_per_pass > 0 && station -> passenger_to_board > 0){
 		cond_broadcast(station -> passenger, station -> lock);
 		cond_wait(station -> train, station -> lock);
 	}
@@ -40,12 +40,12 @@ void
 station_wait_for_train(struct station *station)
 {
 	lock_acquire(station -> lock);
-	station -> passenger_before_station++;
-	while(station -> passenger_in_station == station -> seat_per_pass){
+	station -> passenger_to_board++;
+	while(station -> seat_per_pass == station -> passenger_to_report){
 		cond_wait(station -> passenger, station -> lock);
 	}
-	station -> passenger_before_station--;
-	station -> passenger_in_station++;
+	station -> passenger_to_board--;
+	station -> passenger_to_report++;
 	lock_release(station -> lock);
 }
 
@@ -54,8 +54,8 @@ station_on_board(struct station *station)
 {
 	lock_acquire(station -> lock);
 	station -> seat_per_pass--;
-	station -> passenger_in_station--;
-	if(station -> seat_per_pass == 0 || station -> passenger_in_station == 0){
+	station -> passenger_to_report--;
+	if(station -> seat_per_pass == 0 || station -> passenger_to_report == 0){
 		cond_signal(station -> train, station -> lock);
 	}
 	lock_release(station -> lock);
