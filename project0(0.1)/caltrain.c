@@ -43,7 +43,7 @@ station_wait_for_train(struct station *station)
 	lock_acquire(station -> lock);
 	station -> passenger_to_board++;
 	//避免已经上火车的乘客多与火车的座位数后，乘客station_wait_for_train线程仍然被唤醒
-	while(station -> seat_per_pass == station -> passenger_to_report){
+	while(station -> seat_per_pass <= station -> passenger_to_report){
 		cond_wait(station -> passenger, station -> lock);
 	}
 	station -> passenger_to_board--;
