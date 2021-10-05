@@ -45,7 +45,7 @@ reaction_h(struct reaction *reaction)
 	while((reaction -> num_of_H < 2 || reaction -> num_of_O < 1) && reaction -> num_of_H2O * 2 == reaction -> num_of_consume_H){
 		cond_wait(reaction -> H_cond, reaction -> lock);
 	}
-	if(reaction -> num_of_H >= 2 && reaction -> num_of_O >= 1) {
+	if(reaction -> num_of_H >= 2 && reaction -> num_of_O >= 1 && reaction -> num_of_H2O * 2 == reaction -> num_of_consume_H) {
 		make_water();
 		reaction -> num_of_H -= 2;
 		reaction -> num_of_O -= 1;
@@ -64,10 +64,10 @@ reaction_o(struct reaction *reaction)
 		cond_broadcast(reaction -> H_cond, reaction -> lock);
 		cond_broadcast(reaction -> O_cond, reaction -> lock);
 	}
-	while((reaction -> num_of_H < 2 || reaction -> num_of_O < 1) && (reaction ->  num_of_H2O == reaction -> num_of_consume_O)){
+	while((reaction -> num_of_H < 2 || reaction -> num_of_O < 1) && reaction ->  num_of_H2O == reaction -> num_of_consume_O){
 		cond_wait(reaction -> O_cond, reaction -> lock);
 	}
-	if(reaction -> num_of_H >= 2 && reaction -> num_of_O >= 1) {
+	if(reaction -> num_of_H >= 2 && reaction -> num_of_O >= 1 && reaction ->  num_of_H2O == reaction -> num_of_consume_O) {
 		make_water();
 		reaction -> num_of_H -= 2;
 		reaction -> num_of_O -= 1;
